@@ -7,7 +7,7 @@ Instruction:
 2. Download patch: [disable_titlebar_patch.tar.gz](https://github.com/neuromagus/disable_titlebar_in_sway/blob/main/disable_titlebar_patch.tar.gz)
 3. Extract Sway-1.9 tarball: ```tar xf sway-1.9.tar.gz```
 4. Extract patch and move to sway-1.9 folder: ```tar xf disable_titlebar_patch.tar.gz; mv disable_titlebar.diff sway-1.9/```
-5. Go to folder sway-1.9 and apply the patch: ```cd sway-1.9/; patch -p1 < disable_titlebar.diff```
+5. Go to the sway-1.9 folder and apply the patch: ```cd sway-1.9/; patch -p1 < disable_titlebar.diff```
 6. Compile and install sway (Run these commands):
 ```
 meson build/
