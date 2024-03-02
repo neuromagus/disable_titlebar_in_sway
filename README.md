@@ -1,6 +1,6 @@
 # disable titlebar in sway
 
-Here is a separate patch for Sway 1.9. ;)
+This patch for Sway 1.9 added option ```disable_titlebar``` in config file.
 
 Instruction:
 1. Download latest Sway-1.9 source tarball: https://github.com/swaywm/sway/archive/refs/tags/1.9.tar.gz
