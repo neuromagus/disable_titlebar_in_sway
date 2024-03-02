@@ -1,4 +1,4 @@
-#disable titlebar in sway
+# disable titlebar in sway
 
 Here is a separate patch for Sway 1.9. ;)
 
