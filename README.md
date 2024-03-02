@@ -4,7 +4,7 @@ Here is a separate patch for Sway 1.9. ;)
 
 Instruction:
 1. Download latest Sway-1.9 source tarball: https://github.com/swaywm/sway/archive/refs/tags/1.9.tar.gz
-2. Download patch: [disable_titlebar_patch.tar.gz](https://github.com/swaywm/sway/files/14467763/disable_titlebar_patch.tar.gz)
+2. Download patch: [disable_titlebar_patch.tar.gz](https://github.com/neuromagus/disable_titlebar_in_sway/blob/main/disable_titlebar_patch.tar.gz)
 3. Extract Sway-1.9 tarball: ```tar xf sway-1.9.tar.gz```
 4. Extract patch and move to sway-1.9 folder: ```tar xf disable_titlebar_patch.tar.gz; mv disable_titlebar.diff sway-1.9/```
 5. Go to folder sway-1.9 and apply the patch: ```cd sway-1.9/; patch -p1 < disable_titlebar.diff```
