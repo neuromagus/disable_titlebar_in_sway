@@ -15,7 +15,7 @@ ninja -C build/
 sudo ninja -C build/ install
 ```
 7. Edit ```~/.config/sway/config``` file and add the option: ```disable_titlebar yes``` or read ```man 5 sway``` xD
-for example, a piece of my ~/.config/sway/config:
+For example, a piece of my ~/.config/sway/config:
 ```
 xwayland disable
 workspace_layout tabbed
