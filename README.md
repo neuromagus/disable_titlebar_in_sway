@@ -6,12 +6,11 @@ Instruction:
 1. Download latest Sway-1.9 source tarball: https://github.com/swaywm/sway/archive/refs/tags/1.9.tar.gz
 2. Download patch: [disable_titlebar_patch.tar.gz](https://github.com/neuromagus/disable_titlebar_in_sway/blob/main/disable_titlebar_patch.tar.gz)
 3. Extract Sway-1.9 tarball: ```tar xf sway-1.9.tar.gz```
-4. Extract patch and move to sway-1.9 folder: ```tar xf disable_titlebar_patch.tar.gz; mv disable_titlebar.diff sway-1.9/```
-5. Go to the sway-1.9 folder and apply the patch: ```cd sway-1.9/; patch -p1 < disable_titlebar.diff```
+4. Extract patch and move to sway-1.9 folder: ```tar xf disable_titlebar_patch.tar.gz; mv disable_titlebar.patch sway-1.9/```
+5. Go to the sway-1.9 folder and apply the patch: ```cd sway-1.9/; patch -p1 < disable_titlebar.patch```
 6. Compile and install sway (Run these commands):
 ```
 meson build/
-ninja -C build/
 sudo ninja -C build/ install
 ```
 7. Edit ```~/.config/sway/config``` file and add the option: ```disable_titlebar yes``` or read ```man 5 sway``` xD.  
@@ -25,3 +24,6 @@ disable_titlebar yes
 ```
 
 Enjoy.
+
+Thanks to y0nei, added a fix for drawing the top border.
+
