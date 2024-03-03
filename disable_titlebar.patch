@@ -1,0 +1,223 @@
+From 37bed21c63bf1a905013ab513266ba446f24dd53 Mon Sep 17 00:00:00 2001
+From: neuromagus <neuromagus@mail.ru>
+Date: Sun, 3 Mar 2024 04:18:02 +0300
+Subject: [PATCH] fix top border
+
+---
+ include/sway/commands.h          |  1 +
+ include/sway/config.h            |  1 +
+ sway/commands.c                  |  1 +
+ sway/commands/disable_titlebar.c | 14 ++++++++++++++
+ sway/config.c                    |  1 +
+ sway/desktop/render.c            | 29 ++++++++++++++++++++---------
+ sway/meson.build                 |  1 +
+ sway/sway.5.scd                  |  3 +++
+ sway/tree/container.c            |  4 ++++
+ sway/tree/view.c                 |  4 ++--
+ 10 files changed, 48 insertions(+), 11 deletions(-)
+ create mode 100644 sway/commands/disable_titlebar.c
+
+diff --git a/include/sway/commands.h b/include/sway/commands.h
+index 27058587..ff44d54c 100644
+--- a/include/sway/commands.h
++++ b/include/sway/commands.h
+@@ -124,6 +124,7 @@ sway_cmd cmd_create_output;
+ sway_cmd cmd_default_border;
+ sway_cmd cmd_default_floating_border;
+ sway_cmd cmd_default_orientation;
++sway_cmd cmd_disable_titlebar;
+ sway_cmd cmd_exec;
+ sway_cmd cmd_exec_always;
+ sway_cmd cmd_exit;
+diff --git a/include/sway/config.h b/include/sway/config.h
+index f9da1967..2792cab1 100644
+--- a/include/sway/config.h
++++ b/include/sway/config.h
+@@ -532,6 +532,7 @@ struct sway_config {
+ 	bool validating;
+ 	bool auto_back_and_forth;
+ 	bool show_marks;
++	bool disable_titlebar;
+ 	enum alignment title_align;
+ 	bool primary_selection;
+ 
+diff --git a/sway/commands.c b/sway/commands.c
+index 6becf3c8..b47d5b46 100644
+--- a/sway/commands.c
++++ b/sway/commands.c
+@@ -58,6 +58,7 @@ static const struct cmd_handler handlers[] = {
+ 	{ "client.urgent", cmd_client_urgent },
+ 	{ "default_border", cmd_default_border },
+ 	{ "default_floating_border", cmd_default_floating_border },
++	{ "disable_titlebar", cmd_disable_titlebar },
+ 	{ "exec", cmd_exec },
+ 	{ "exec_always", cmd_exec_always },
+ 	{ "floating_maximum_size", cmd_floating_maximum_size },
+diff --git a/sway/commands/disable_titlebar.c b/sway/commands/disable_titlebar.c
+new file mode 100644
+index 00000000..e05b4b8c
+--- /dev/null
++++ b/sway/commands/disable_titlebar.c
+@@ -0,0 +1,14 @@
++#include "sway/commands.h"
++#include "sway/config.h"
++#include "util.h"
++
++struct cmd_results *cmd_disable_titlebar(int argc, char **argv) {
++    struct cmd_results *error = NULL;
++    if ((error = checkarg(argc, "disable_titlebar", EXPECTED_EQUAL_TO, 1))) {
++        return error;
++    }
++
++    config->disable_titlebar = parse_boolean(argv[0], config->disable_titlebar);
++
++    return cmd_results_new(CMD_SUCCESS, NULL);
++}
+diff --git a/sway/config.c b/sway/config.c
+index 099e0e81..690e4dec 100644
+--- a/sway/config.c
++++ b/sway/config.c
+@@ -270,6 +270,7 @@ static void config_defaults(struct sway_config *config) {
+ 	config->auto_back_and_forth = false;
+ 	config->reading = false;
+ 	config->show_marks = true;
++	config->disable_titlebar = false;
+ 	config->title_align = ALIGN_LEFT;
+ 	config->tiling_drag = true;
+ 	config->tiling_drag_threshold = 9;
+diff --git a/sway/desktop/render.c b/sway/desktop/render.c
+index c4c0004e..6d3d3b4b 100644
+--- a/sway/desktop/render.c
++++ b/sway/desktop/render.c
+@@ -716,10 +716,12 @@ static void render_containers_linear(struct render_context *ctx, struct parent_d
+ 				marks_texture = child->marks_unfocused;
+ 			}
+ 
+-			if (state->border == B_NORMAL) {
++			if (state->border == B_NORMAL && !config->disable_titlebar) {
+ 				render_titlebar(ctx, child, floor(state->x),
+ 						floor(state->y), state->width, colors,
+ 						title_texture, marks_texture);
++			} else if (state->border == B_NORMAL && config->disable_titlebar) {					
++				render_top_border(ctx, child, colors);
+ 			} else if (state->border == B_PIXEL) {
+ 				render_top_border(ctx, child, colors);
+ 			}
+@@ -790,12 +792,17 @@ static void render_containers_tabbed(struct render_context *ctx, struct parent_d
+ 			tab_width = parent->box.width - tab_width * i;
+ 		}
+ 
+-		render_titlebar(ctx, child, x, parent->box.y, tab_width,
+-				colors, title_texture, marks_texture);
+-
+ 		if (child == current) {
+ 			current_colors = colors;
+ 		}
++
++		if (!config->disable_titlebar) {
++			render_titlebar(ctx, child, x, parent->box.y, tab_width,
++					colors, title_texture, marks_texture);
++		} else if (cstate->border == B_PIXEL || cstate->border == B_NORMAL) {
++			render_top_border(ctx, current, current_colors);
++		}
++		
+ 	}
+ 
+ 	// Render surface and left/right/bottom borders
+@@ -851,10 +858,12 @@ static void render_containers_stacked(struct render_context *ctx, struct parent_
+ 			marks_texture = child->marks_unfocused;
+ 		}
+ 
+-		int y = parent->box.y + titlebar_height * i;
+-		render_titlebar(ctx, child, parent->box.x, y,
+-				parent->box.width, colors, title_texture, marks_texture);
+-
++		if (!config->disable_titlebar) {
++			int y = parent->box.y + titlebar_height * i;
++			render_titlebar(ctx, child, parent->box.x, y,
++					parent->box.width, colors, title_texture, marks_texture);
++		}
++		
+ 		if (child == current) {
+ 			current_colors = colors;
+ 		}
+@@ -949,10 +958,12 @@ static void render_floating_container(struct render_context *ctx,
+ 			marks_texture = con->marks_unfocused;
+ 		}
+ 
+-		if (con->current.border == B_NORMAL) {
++		if (con->current.border == B_NORMAL && !config->disable_titlebar) {
+ 			render_titlebar(ctx, con, floor(con->current.x),
+ 					floor(con->current.y), con->current.width, colors,
+ 					title_texture, marks_texture);
++		} else if (con->current.border == B_NORMAL && config->disable_titlebar) {
++			render_top_border(ctx, con, colors);
+ 		} else if (con->current.border == B_PIXEL) {
+ 			render_top_border(ctx, con, colors);
+ 		}
+diff --git a/sway/meson.build b/sway/meson.build
+index 3abd778d..4ec9c609 100644
+--- a/sway/meson.build
++++ b/sway/meson.build
+@@ -51,6 +51,7 @@ sway_sources = files(
+ 	'commands/default_border.c',
+ 	'commands/default_floating_border.c',
+ 	'commands/default_orientation.c',
++	'commands/disable_titlebar.c',
+ 	'commands/exit.c',
+ 	'commands/exec.c',
+ 	'commands/exec_always.c',
+diff --git a/sway/sway.5.scd b/sway/sway.5.scd
+index 7e58b528..35024eea 100644
+--- a/sway/sway.5.scd
++++ b/sway/sway.5.scd
+@@ -725,6 +725,9 @@ The default colors are:
+ 	above and below text). Padding includes titlebar borders so their value
+ 	should be greater than titlebar_border_thickness. If _vertical_ value is
+ 	not specified it is set to the _horizontal_ value.
++	
++*disable_titlebar* yes|no.
++	Remove titlebar. Default is _no_.
+ 
+ *for_window* <criteria> <command>
+ 	Whenever a window that matches _criteria_ appears, run list of commands.
+diff --git a/sway/tree/container.c b/sway/tree/container.c
+index 8c344a6d..d4d02390 100644
+--- a/sway/tree/container.c
++++ b/sway/tree/container.c
+@@ -670,6 +670,10 @@ void container_update_representation(struct sway_container *con) {
+ }
+ 
+ size_t container_titlebar_height(void) {
++	if(config->disable_titlebar) {
++		return 0;
++	}
++	
+ 	return config->font_height + config->titlebar_v_padding * 2;
+ }
+ 
+diff --git a/sway/tree/view.c b/sway/tree/view.c
+index 65ca0c9c..4314e9a4 100644
+--- a/sway/tree/view.c
++++ b/sway/tree/view.c
+@@ -294,7 +294,7 @@ void view_autoconfigure(struct sway_view *view) {
+ 		}
+ 	}
+ 
+-	if (!container_is_floating(con)) {
++	if (!container_is_floating(con) && !config->disable_titlebar) {
+ 		// In a tabbed or stacked container, the container's y is the top of the
+ 		// title area. We have to offset the surface y by the height of the title,
+ 		// bar, and disable any top border because we'll always have the title bar.
+@@ -422,7 +422,7 @@ void view_update_csd_from_client(struct sway_view *view, bool enabled) {
+ 	struct sway_container *con = view->container;
+ 	if (enabled && con && con->pending.border != B_CSD) {
+ 		con->saved_border = con->pending.border;
+-		if (container_is_floating(con)) {
++		if (container_is_floating(con) || config->disable_titlebar) {
+ 			con->pending.border = B_CSD;
+ 		}
+ 	} else if (!enabled && con && con->pending.border == B_CSD) {
+-- 
+2.44.0
+
