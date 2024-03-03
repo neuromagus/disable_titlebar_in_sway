@@ -30,6 +30,6 @@ disable_titlebar yes
 Enjoy.
 
 ***
-Thanks to y0nei, added a fix for drawing the top border.
+Thanks to y0nei for the feedback, I added a fix for drawing the top border.
 ***
 
