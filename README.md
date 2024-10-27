@@ -8,7 +8,11 @@ Instruction:
 3. Extract Sway-1.9 tarball
 4. Extract patch and move to sway-1.9 folder
 5. Go to the sway-1.9 folder and apply the patch
-6. Compile and install sway (Run these commands):
+6. Compile and install sway
+(now we have different versions of Wlroots.
+On Archlinux, for example, use this command:  
+```export PKG_CONFIG_PATH='/usr/lib/wlroots0.17/pkgconfig``` before ```meson build/```):
+
 ```
 tar xf sway-1.9.tar.gz
 tar xf disable_titlebar_patch.tar.gz; mv disable_titlebar.patch sway-1.9/
@@ -17,6 +21,8 @@ meson build/
 ninja -C build/
 sudo ninja -C build/ install
 ```
+
+
 7. Edit ```~/.config/sway/config``` file and add the option: ```disable_titlebar yes``` or read ```man 5 sway``` xD.  
 For example, a piece of my ~/.config/sway/config:
 ```
