@@ -1,0 +1,101 @@
+diff -Naur sway-1.10/include/sway/commands.h sway_without_titlebar/include/sway/commands.h
+--- sway-1.10/include/sway/commands.h	2024-10-27 23:44:01.000000000 +0300
++++ sway_without_titlebar/include/sway/commands.h	2024-10-29 19:56:48.986533618 +0300
+@@ -125,6 +125,7 @@
+ sway_cmd cmd_default_border;
+ sway_cmd cmd_default_floating_border;
+ sway_cmd cmd_default_orientation;
++sway_cmd cmd_disable_titlebar;
+ sway_cmd cmd_exec;
+ sway_cmd cmd_exec_always;
+ sway_cmd cmd_exit;
+diff -Naur sway-1.10/include/sway/config.h sway_without_titlebar/include/sway/config.h
+--- sway-1.10/include/sway/config.h	2024-10-27 23:44:01.000000000 +0300
++++ sway_without_titlebar/include/sway/config.h	2024-10-29 19:54:56.981700498 +0300
+@@ -514,6 +514,7 @@
+ 	int font_height;
+ 	int font_baseline;
+ 	bool pango_markup;
++	bool disable_titlebar;
+ 	int titlebar_border_thickness;
+ 	int titlebar_h_padding;
+ 	int titlebar_v_padding;
+diff -Naur sway-1.10/sway/commands/disable_titlebar.c sway_without_titlebar/sway/commands/disable_titlebar.c
+--- sway-1.10/sway/commands/disable_titlebar.c	1970-01-01 03:00:00.000000000 +0300
++++ sway_without_titlebar/sway/commands/disable_titlebar.c	2024-10-29 19:50:50.716803662 +0300
+@@ -0,0 +1,14 @@
++#include "sway/commands.h"
++#include "sway/config.h"
++#include "util.h"
++
++struct cmd_results *cmd_disable_titlebar(int argc, char **argv) {
++    struct cmd_results *error = NULL;
++    if ((error = checkarg(argc, "disable_titlebar", EXPECTED_EQUAL_TO, 1))) {
++        return error;
++    }
++
++    config->disable_titlebar = parse_boolean(argv[0], config->disable_titlebar);
++
++    return cmd_results_new(CMD_SUCCESS, NULL);
++}
+diff -Naur sway-1.10/sway/commands.c sway_without_titlebar/sway/commands.c
+--- sway-1.10/sway/commands.c	2024-10-27 23:44:01.000000000 +0300
++++ sway_without_titlebar/sway/commands.c	2024-10-29 19:53:47.208426995 +0300
+@@ -57,6 +57,7 @@
+ 	{ "client.urgent", cmd_client_urgent },
+ 	{ "default_border", cmd_default_border },
+ 	{ "default_floating_border", cmd_default_floating_border },
++	{ "disable_titlebar", cmd_disable_titlebar },
+ 	{ "exec", cmd_exec },
+ 	{ "exec_always", cmd_exec_always },
+ 	{ "floating_maximum_size", cmd_floating_maximum_size },
+diff -Naur sway-1.10/sway/config.c sway_without_titlebar/sway/config.c
+--- sway-1.10/sway/config.c	2024-10-27 23:44:01.000000000 +0300
++++ sway_without_titlebar/sway/config.c	2024-10-29 19:49:57.309715693 +0300
+@@ -279,6 +279,7 @@
+ 	config->auto_back_and_forth = false;
+ 	config->reading = false;
+ 	config->show_marks = true;
++    config->disable_titlebar = false;
+ 	config->title_align = ALIGN_LEFT;
+ 	config->tiling_drag = true;
+ 	config->tiling_drag_threshold = 9;
+diff -Naur sway-1.10/sway/meson.build sway_without_titlebar/sway/meson.build
+--- sway-1.10/sway/meson.build	2024-10-27 23:44:01.000000000 +0300
++++ sway_without_titlebar/sway/meson.build	2024-10-29 20:03:27.137339544 +0300
+@@ -52,6 +52,7 @@
+ 	'commands/default_border.c',
+ 	'commands/default_floating_border.c',
+ 	'commands/default_orientation.c',
++    'commands/disable_titlebar.c',
+ 	'commands/exit.c',
+ 	'commands/exec.c',
+ 	'commands/exec_always.c',
+diff -Naur sway-1.10/sway/tree/container.c sway_without_titlebar/sway/tree/container.c
+--- sway-1.10/sway/tree/container.c	2024-10-27 23:44:01.000000000 +0300
++++ sway_without_titlebar/sway/tree/container.c	2024-10-29 19:46:23.612400449 +0300
+@@ -811,7 +811,11 @@
+ }
+ 
+ size_t container_titlebar_height(void) {
+-	return config->font_height + config->titlebar_v_padding * 2;
++	if(config->disable_titlebar) {
++        return 0;
++	}
++    
++    return config->font_height + config->titlebar_v_padding * 2; 
+ }
+ 
+ void floating_calculate_constraints(int *min_width, int *max_width,
+diff -Naur sway-1.10/sway/tree/view.c sway_without_titlebar/sway/tree/view.c
+--- sway-1.10/sway/tree/view.c	2024-10-27 23:44:01.000000000 +0300
++++ sway_without_titlebar/sway/tree/view.c	2024-10-29 19:46:55.870632306 +0300
+@@ -305,7 +305,7 @@
+ 		}
+ 	}
+ 
+-	if (!container_is_floating(con)) {
++	if (!container_is_floating(con) && !config->disable_titlebar) {
+ 		// In a tabbed or stacked container, the container's y is the top of the
+ 		// title area. We have to offset the surface y by the height of the title,
+ 		// bar, and disable any top border because we'll always have the title bar.
