@@ -4,7 +4,7 @@ This patch for latest Sway (1.10) and old version (1.9) which adds the 'disable_
 
 Instruction:
 1. Download latest Sway-1.10 source tarball: https://github.com/swaywm/sway/archive/refs/tags/1.10.tar.gz
-2. Download patch for latest Sway (1.10): [disable_titlebar_patch.tar.gz](https://github.com/neuromagus/disable_titlebar_in_sway/blob/main/disable_titlebar_patch_sway1-10.tar.gz)
+2. Download patch for latest Sway (1.10): [disable_titlebar_patch_sway1-10.tar.gz](https://github.com/neuromagus/disable_titlebar_in_sway/releases/download/v1.10/disable_titlebar_patch_sway1-10.tar.gz)
 3. Extract Sway-1.10 tarball
 4. Extract patch and move to sway-1.10 folder
 5. Go to the sway-1.10 folder and apply the patch
