@@ -15,7 +15,7 @@ On Archlinux, for example, use this command:
 ```
 tar xf sway-1.10.tar.gz
 tar xf disable_titlebar_patch_sway1-10.tar.gz; mv disable_titlebar_sway1-10.patch sway-1.10/
-cd sway-1.10/; patch -p1 < mv disable_titlebar_sway1-10.patch
+cd sway-1.10/; patch -p1 < disable_titlebar_sway1-10.patch
 meson build/
 sudo ninja -C build/ install
 ```
