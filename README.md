@@ -1,5 +1,8 @@
 # disable titlebar in sway
 
+## moved to Codeberg https://codeberg.org/neuromagus/disable_titlebar_in_sway
+
+
 This patch for latest Sway (1.10) and old version (1.9) which adds the ```disable_titlebar``` option in the config file.
 
 Instruction:
